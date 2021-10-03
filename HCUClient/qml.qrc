@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>PropertyBool.qml</file>
+        <file>PropertyByte.qml</file>
+    </qresource>
+</RCC>

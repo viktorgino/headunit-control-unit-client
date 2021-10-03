@@ -1,0 +1,70 @@
+#ifndef SERIALCONTROLLER_H
+#define SERIALCONTROLLER_H
+
+#include <QObject>
+#include <QSerialPort>
+#include <QSerialPortInfo>
+#include <QStringList>
+#include <QDebug>
+#include <QByteArray>
+#include <QQmlPropertyMap>
+
+#include "HCUcrl/common.h"
+
+Q_DECLARE_METATYPE(ClimateControlCommandFrame)
+Q_DECLARE_METATYPE(CustomCommandFrame)
+
+class SerialController : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QStringList ports READ getPorts NOTIFY portsUpdated)
+    Q_PROPERTY(bool connected READ getConnected NOTIFY connectedUpdated)
+    Q_PROPERTY(QQmlPropertyMap *ACControlFrame READ getAcControlFrame NOTIFY ACControlFrameUpdated)
+    Q_PROPERTY(QQmlPropertyMap *CustomCommandFrame READ getCustomCommandFrame NOTIFY CustomCommandFrameUpdated)
+
+public:
+    explicit SerialController(QObject *parent = nullptr);
+
+private:
+    QStringList getPorts() {
+        return m_ports;
+    }
+    bool getConnected(){
+        return m_connected;
+    }
+    QQmlPropertyMap *getAcControlFrame(){
+        return &m_acControlFrame;
+    }
+    QQmlPropertyMap *getCustomCommandFrame(){
+        return &m_customCommandFrame;
+    }
+
+    QStringList m_ports;
+    bool m_connected;
+    QSerialPort m_serial;
+    QByteArray m_serialInput;
+    QQmlPropertyMap m_acControlFrame;
+    QQmlPropertyMap m_customCommandFrame;
+    CustomCommandFrame m_commandFrame;
+    void sendCustomCommandFrame();
+
+
+    QString printHex(uint8_t numByte);
+    void sendMessage(HUDSerial::CommandTypes messageType, uint8_t length, uint8_t *message);
+signals:
+    void portsUpdated();
+    void connectedUpdated();
+    void ACControlFrameUpdated();
+    void CustomCommandFrameUpdated();
+    void logLineReceived(QString logLine);
+public slots:
+    void updatePorts();
+    void connectSerial(QString port, QString baud);
+    void disconnectSerial();
+    void handleReadyRead();
+    void handleError(QSerialPort::SerialPortError error);
+    void setCustomCommandBit(int bitNumber, bool value);
+    void setCustomCommandByte(int byteNumber, int value);
+};
+
+#endif // SERIALCONTROLLER_H
